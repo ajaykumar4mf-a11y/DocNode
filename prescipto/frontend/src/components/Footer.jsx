@@ -1,44 +1,69 @@
-import React from 'react'
 import { assets } from '../assets/assets'
+import { Link } from 'react-router-dom'
 
 const Footer = () => {
   return (
-    <div className='md:mx-10'>
-      <div className='flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm'>
+    <footer className='md:mx-10 mt-32'>
+      <div className='flex flex-col sm:flex-row justify-between items-start gap-10 sm:gap-16 my-10 text-sm text-slate-600'>
 
-        {/* ----------------------------Left Section------------------------------ */}
-        <div>
-            <img className='mb-5 w-40 ' src={assets.logo} alt="" />
-            <p className='w-full md:w-2/3 text-gray-600 leading-6'>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+        {/* Left Section */}
+        <div className='flex-1 max-w-sm flex flex-col items-start gap-4'>
+          <img className='w-40 cursor-pointer' src={assets.logo} alt="DocNode logo" />
+          <p className='w-full leading-relaxed text-slate-500'>
+            DocNode helps you find and book appointments with verified doctors and specialists. Streamlining healthcare scheduling for patients everywhere.
+          </p>
         </div>
 
-        {/* ----------------------------Centre Section------------------------------ */}
-        <div>
-            <p className='text-xl font-medium mb-5'>COMPANY</p>
-            <ul className='flex flex-col gap-2 text-gray-600'>
-                <li>Home</li>
-                <li>About us</li>
-                <li>Delivery</li>
-                <li>Privacy policy</li>
+        {/* Center Section */}
+        <div className='flex-1 flex flex-col items-start sm:items-center'>
+          <div>
+            <p className='text-xs font-bold text-slate-900 tracking-wider uppercase mb-4'>COMPANY</p>
+            <ul className='flex flex-col gap-2.5 text-slate-500 font-medium'>
+              <li>
+                <Link to='/' onClick={() => scrollTo(0, 0)} className='hover:text-primary transition-colors'>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link to='/about' onClick={() => scrollTo(0, 0)} className='hover:text-primary transition-colors'>
+                  About us
+                </Link>
+              </li>
+              <li>
+                <Link to='/doctors' onClick={() => scrollTo(0, 0)} className='hover:text-primary transition-colors'>
+                  All Doctors
+                </Link>
+              </li>
+              <li>
+                <Link to='/contact' onClick={() => scrollTo(0, 0)} className='hover:text-primary transition-colors'>
+                  Contact
+                </Link>
+              </li>
             </ul>
+          </div>
         </div>
 
-        {/* ----------------------------Right Section------------------------------ */}
-        <div>
-            <p className='text-xl font-medium mb-5'>GET IN TOUCH</p>
-            <ul className='flex flex-col gap-2 text-gray-600'>
-                <li>+0-000-000-000</li>
-                <li>greatstackdev@gmail.com</li>
+        {/* Right Section */}
+        <div className='flex-1 flex flex-col items-start sm:items-end'>
+          <div>
+            <p className='text-xs font-bold text-slate-900 tracking-wider uppercase mb-4'>GET IN TOUCH</p>
+            <ul className='flex flex-col gap-2.5 text-slate-500 font-medium'>
+              <li className='hover:text-slate-800 transition-colors'>+1-800-555-0199</li>
+              <li>
+                <a href="mailto:contact@docnode.com" className='hover:text-primary transition-colors'>
+                  contact@docnode.com
+                </a>
+              </li>
             </ul>
+          </div>
         </div>
       </div>
 
-      <div>
-        {/* ------------------------Copyright Text------------------------------ */}
-        <hr />
-        <p className='py-5 text-sm text-center'>Copyright 2024 @ Greatstack.dev - All Right Reserved.</p>
+      {/* Copyright Bar */}
+      <div className='border-t border-slate-100 py-6 text-xs text-center text-slate-400 font-medium'>
+        Copyright 2026 @ DocNode - All Rights Reserved.
       </div>
-    </div>
+    </footer>
   )
 }
 
