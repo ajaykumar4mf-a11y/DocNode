@@ -5,12 +5,13 @@ export const AppContext = createContext()
 
 const AppContextProvider = (props) => {
 
-    const cuurencySymbol = '$'
+    const currencySymbol = '$'
     const [token, setToken] = useState(false)
 
     const value = {
         doctors,
-        cuurencySymbol,
+        currencySymbol,
+        cuurencySymbol: currencySymbol,
         token,
         setToken
     }

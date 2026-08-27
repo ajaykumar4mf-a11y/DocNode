@@ -24,7 +24,7 @@ const RelatedDoctors = ({ speciality, docId }) => {
           Related Specialists
         </h2>
         <p className='text-slate-500 text-sm mt-2'>
-          Explore other highly rated {speciality}s available for instant booking.
+          Explore other highly rated {speciality.toLowerCase().endsWith('s') ? speciality : `${speciality}s`} available for instant booking.
         </p>
       </div>
 
