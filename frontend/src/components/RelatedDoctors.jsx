@@ -58,7 +58,7 @@ const RelatedDoctors = ({ speciality, docId }) => {
               <h3 className='text-slate-900 text-base font-bold group-hover:text-primary transition-colors'>
                 {item.name}
               </h3>
-              
+
               <p className='text-slate-500 text-xs font-medium'>
                 {item.speciality}
               </p>

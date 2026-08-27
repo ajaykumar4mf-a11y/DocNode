@@ -22,15 +22,15 @@ const MyProfile = () => {
     <div className='max-w-2xl my-6'>
       {/* Profile Card Container */}
       <div className='bg-white border border-slate-100 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-100/60 flex flex-col gap-6'>
-        
+
         {/* User Top Header */}
         <div className='flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-slate-100'>
-          <img 
-            className='w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover object-top border-2 border-slate-100 shadow-md flex-shrink-0' 
-            src={userData.image} 
-            alt="Profile Avatar" 
+          <img
+            className='w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover object-top border-2 border-slate-100 shadow-md flex-shrink-0'
+            src={userData.image}
+            alt="Profile Avatar"
           />
-          
+
           <div className='flex-1 w-full'>
             {isEdit ? (
               <input

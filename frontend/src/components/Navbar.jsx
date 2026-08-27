@@ -23,10 +23,9 @@ const Navbar = () => {
         <NavLink
           to='/'
           className={({ isActive }) =>
-            `py-1.5 transition-all relative ${
-              isActive
-                ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
-                : 'hover:text-slate-900'
+            `py-1.5 transition-all relative ${isActive
+              ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
+              : 'hover:text-slate-900'
             }`
           }
         >
@@ -36,10 +35,9 @@ const Navbar = () => {
         <NavLink
           to='/doctors'
           className={({ isActive }) =>
-            `py-1.5 transition-all relative ${
-              isActive
-                ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
-                : 'hover:text-slate-900'
+            `py-1.5 transition-all relative ${isActive
+              ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
+              : 'hover:text-slate-900'
             }`
           }
         >
@@ -49,10 +47,9 @@ const Navbar = () => {
         <NavLink
           to='/about'
           className={({ isActive }) =>
-            `py-1.5 transition-all relative ${
-              isActive
-                ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
-                : 'hover:text-slate-900'
+            `py-1.5 transition-all relative ${isActive
+              ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
+              : 'hover:text-slate-900'
             }`
           }
         >
@@ -62,10 +59,9 @@ const Navbar = () => {
         <NavLink
           to='/contact'
           className={({ isActive }) =>
-            `py-1.5 transition-all relative ${
-              isActive
-                ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
-                : 'hover:text-slate-900'
+            `py-1.5 transition-all relative ${isActive
+              ? 'text-primary font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full'
+              : 'hover:text-slate-900'
             }`
           }
         >
@@ -87,7 +83,7 @@ const Navbar = () => {
               src={assets.dropdown_icon}
               alt=''
             />
-            
+
             {/* Hover Dropdown Card */}
             <div className='absolute top-full right-0 pt-2 text-xs font-medium text-slate-700 z-50 hidden group-hover:block'>
               <div className='w-56 bg-white border border-slate-100 shadow-2xl rounded-2xl p-2 flex flex-col gap-0.5'>
@@ -151,9 +147,8 @@ const Navbar = () => {
 
       {/* Drawer Panel */}
       <div
-        className={`md:hidden fixed top-0 right-0 w-3/4 sm:w-80 h-full bg-white z-50 p-6 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out ${
-          showMenu ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`md:hidden fixed top-0 right-0 w-3/4 sm:w-80 h-full bg-white z-50 p-6 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out ${showMenu ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         <div>
           {/* Drawer Header */}
@@ -177,10 +172,9 @@ const Navbar = () => {
                 onClick={() => setShowMenu(false)}
                 to='/'
                 className={({ isActive }) =>
-                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${
-                    isActive
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${isActive
+                    ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
+                    : 'text-slate-700 hover:bg-slate-50'
                   }`
                 }
               >
@@ -192,10 +186,9 @@ const Navbar = () => {
                 onClick={() => setShowMenu(false)}
                 to='/doctors'
                 className={({ isActive }) =>
-                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${
-                    isActive
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${isActive
+                    ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
+                    : 'text-slate-700 hover:bg-slate-50'
                   }`
                 }
               >
@@ -207,10 +200,9 @@ const Navbar = () => {
                 onClick={() => setShowMenu(false)}
                 to='/about'
                 className={({ isActive }) =>
-                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${
-                    isActive
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${isActive
+                    ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
+                    : 'text-slate-700 hover:bg-slate-50'
                   }`
                 }
               >
@@ -222,10 +214,9 @@ const Navbar = () => {
                 onClick={() => setShowMenu(false)}
                 to='/contact'
                 className={({ isActive }) =>
-                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${
-                    isActive
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                  `px-4 py-3 rounded-xl flex items-center justify-between transition-all ${isActive
+                    ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
+                    : 'text-slate-700 hover:bg-slate-50'
                   }`
                 }
               >

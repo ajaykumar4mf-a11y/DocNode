@@ -38,11 +38,10 @@ const Doctors = () => {
         {/* Mobile Filter Toggle Button */}
         <button
           onClick={() => setShowFilter(!showFilter)}
-          className={`lg:hidden flex items-center justify-between w-full px-5 py-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
-            showFilter
+          className={`lg:hidden flex items-center justify-between w-full px-5 py-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${showFilter
               ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
               : 'bg-white text-slate-700 border-slate-200 shadow-sm'
-          }`}
+            }`}
         >
           <span>Filters {speciality ? `: ${speciality}` : '(All Doctors)'}</span>
           <svg
@@ -57,9 +56,8 @@ const Doctors = () => {
 
         {/* Sidebar Filters */}
         <div
-          className={`flex-col gap-2.5 w-full lg:w-64 flex-shrink-0 ${
-            showFilter ? 'flex' : 'hidden lg:flex'
-          }`}
+          className={`flex-col gap-2.5 w-full lg:w-64 flex-shrink-0 ${showFilter ? 'flex' : 'hidden lg:flex'
+            }`}
         >
           <div className='flex items-center justify-between px-1 mb-1'>
             <span className='text-xs font-bold text-slate-400 uppercase tracking-wider'>
@@ -77,11 +75,10 @@ const Doctors = () => {
 
           <button
             onClick={() => navigate('/doctors')}
-            className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${
-              !speciality
+            className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${!speciality
                 ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
                 : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
-            }`}
+              }`}
           >
             <span>All Doctors</span>
             <span className={`text-xs px-2.5 py-0.5 rounded-full ${!speciality ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
@@ -98,11 +95,10 @@ const Doctors = () => {
                 onClick={() =>
                   isSelected ? navigate('/doctors') : navigate(`/doctors/${spec}`)
                 }
-                className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${
-                  isSelected
+                className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${isSelected
                     ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
                     : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
-                }`}
+                  }`}
               >
                 <span>{spec}</span>
                 <span className={`text-xs px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>

@@ -17,18 +17,18 @@ const MyAppointment = () => {
 
       <div className='flex flex-col gap-4'>
         {doctors.slice(0, 3).map((doctor, index) => (
-          <div 
-            className='border border-slate-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6' 
+          <div
+            className='border border-slate-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6'
             key={index}
           >
             {/* Left: Doctor Photo & Info */}
             <div className='flex items-start sm:items-center gap-4 flex-1'>
-              <img 
-                className='w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover object-top bg-indigo-50/50 border border-slate-100 flex-shrink-0' 
-                src={doctor.image} 
-                alt={doctor.name} 
+              <img
+                className='w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover object-top bg-indigo-50/50 border border-slate-100 flex-shrink-0'
+                src={doctor.image}
+                alt={doctor.name}
               />
-              
+
               <div className='flex flex-col gap-1 text-sm text-slate-600'>
                 <h2 className='text-slate-900 font-bold text-base sm:text-lg'>
                   {doctor.name}
@@ -36,7 +36,7 @@ const MyAppointment = () => {
                 <p className='text-primary text-xs font-semibold'>
                   {doctor.speciality}
                 </p>
-                
+
                 <div className='text-xs text-slate-500 mt-1 leading-relaxed'>
                   <span className='font-semibold text-slate-700'>Clinic Address: </span>
                   {doctor.address?.line1}, {doctor.address?.line2}
@@ -54,7 +54,7 @@ const MyAppointment = () => {
               <button className='flex-1 sm:flex-none sm:min-w-44 bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-full text-xs font-semibold shadow-md shadow-primary/20 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer text-center'>
                 Pay Online
               </button>
-              
+
               <button className='flex-1 sm:flex-none sm:min-w-44 border border-rose-200 text-rose-500 hover:bg-rose-500 hover:text-white px-6 py-2.5 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer text-center'>
                 Cancel Appointment
               </button>

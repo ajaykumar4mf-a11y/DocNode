@@ -15,7 +15,7 @@ const AppContextProvider = (props) => {
         setToken
     }
 
-    return(
+    return (
         <AppContext.Provider value={value}>
             {props.children}
         </AppContext.Provider>

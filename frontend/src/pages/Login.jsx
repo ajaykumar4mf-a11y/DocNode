@@ -21,28 +21,26 @@ const Login = () => {
   return (
     <form onSubmit={onSubmitHandler} className='min-h-[75vh] flex items-center justify-center py-10 px-4'>
       <div className='w-full max-w-md bg-white border border-slate-100 rounded-3xl p-6 sm:p-10 shadow-2xl shadow-slate-100/80 flex flex-col gap-5 transition-all duration-300'>
-        
+
         {/* Tab Selector */}
         <div className='w-full bg-slate-100/80 p-1 rounded-2xl flex text-xs font-semibold'>
           <button
             type='button'
             onClick={() => setState('sign Up')}
-            className={`flex-1 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
-              state === 'sign Up'
+            className={`flex-1 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${state === 'sign Up'
                 ? 'bg-white text-slate-900 shadow-sm font-bold'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             Create Account
           </button>
           <button
             type='button'
             onClick={() => setState('login')}
-            className={`flex-1 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
-              state === 'login'
+            className={`flex-1 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${state === 'login'
                 ? 'bg-white text-slate-900 shadow-sm font-bold'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             Log In
           </button>
