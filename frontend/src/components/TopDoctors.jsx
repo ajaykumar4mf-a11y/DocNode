@@ -4,8 +4,8 @@ import { AppContext } from '../context/AppContext';
 
 const TopDoctors = () => {
 
-    const navigate = useNavigate();
-    const {doctors} = useContext(AppContext)
+  const navigate = useNavigate();
+  const { doctors } = useContext(AppContext)
 
   return (
     <div className='flex flex-col items-center gap-4 my-16 text-gray-900 md:mx-10'>
@@ -18,15 +18,15 @@ const TopDoctors = () => {
 
       <div className='w-full grid grid-cols-auto gap-6 pt-6 gap-y-8 px-3 sm:px-0'>
         {doctors.slice(0, 10).map((item, index) => (
-          <div 
-            onClick={() => {navigate(`/appointment/${item._id}`); scrollTo(0, 0)}} 
-            className='border border-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 bg-white group' 
+          <div
+            onClick={() => { navigate(`/appointment/${item._id}`); scrollTo(0, 0) }}
+            className='border border-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 bg-white group'
             key={index}
           >
             <div className='w-full h-56 overflow-hidden bg-indigo-50/40 relative'>
               <img className='w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105' src={item.image} alt={item.name} />
             </div>
-            
+
             <div className='p-5'>
               <div className='flex items-center gap-2 text-xs font-medium text-emerald-600 mb-2'>
                 <span className="relative flex h-2 w-2">
@@ -35,7 +35,7 @@ const TopDoctors = () => {
                 </span>
                 <span>Available Today</span>
               </div>
-              
+
               <h3 className='text-slate-800 text-lg font-bold group-hover:text-primary transition-colors line-clamp-1'>
                 {item.name}
               </h3>
@@ -45,8 +45,8 @@ const TopDoctors = () => {
         ))}
       </div>
 
-      <button 
-        onClick={() => { navigate('/doctors'); scrollTo(0, 0) }} 
+      <button
+        onClick={() => { navigate('/doctors'); scrollTo(0, 0) }}
         className='bg-indigo-50 hover:bg-primary hover:text-white text-primary text-sm font-semibold px-12 py-3.5 rounded-full mt-10 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-primary/25 cursor-pointer active:scale-95'
       >
         View All Doctors

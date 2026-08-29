@@ -163,11 +163,10 @@ const Appointment = () => {
                       setSlotIndex(index)
                       setSlotTime('')
                     }}
-                    className={`flex flex-col items-center justify-center py-3.5 px-4 min-w-16 rounded-2xl cursor-pointer transition-all duration-200 ${
-                      slotIndex === index
+                    className={`flex flex-col items-center justify-center py-3.5 px-4 min-w-16 rounded-2xl cursor-pointer transition-all duration-200 ${slotIndex === index
                         ? 'bg-primary text-white shadow-lg shadow-primary/25 font-bold scale-105'
                         : 'border border-slate-200/80 bg-white text-slate-600 hover:border-slate-300 font-semibold'
-                    }`}
+                      }`}
                   >
                     <span className='text-xs opacity-80 uppercase'>
                       {daysOfWeek[pillDate.getDay()]}
@@ -188,11 +187,10 @@ const Appointment = () => {
                   <button
                     key={index}
                     onClick={() => setSlotTime(item.time)}
-                    className={`flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 ${
-                      item.time === slotTime
+                    className={`flex-shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 ${item.time === slotTime
                         ? 'bg-primary text-white shadow-md shadow-primary/25 scale-105'
                         : 'bg-slate-50 text-slate-600 border border-slate-200/80 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     {item.time}
                   </button>

@@ -39,8 +39,8 @@ const Doctors = () => {
         <button
           onClick={() => setShowFilter(!showFilter)}
           className={`lg:hidden flex items-center justify-between w-full px-5 py-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${showFilter
-              ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
-              : 'bg-white text-slate-700 border-slate-200 shadow-sm'
+            ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+            : 'bg-white text-slate-700 border-slate-200 shadow-sm'
             }`}
         >
           <span>Filters {speciality ? `: ${speciality}` : '(All Doctors)'}</span>
@@ -76,8 +76,8 @@ const Doctors = () => {
           <button
             onClick={() => navigate('/doctors')}
             className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${!speciality
-                ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
+              ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
               }`}
           >
             <span>All Doctors</span>
@@ -96,8 +96,8 @@ const Doctors = () => {
                   isSelected ? navigate('/doctors') : navigate(`/doctors/${spec}`)
                 }
                 className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all cursor-pointer flex items-center justify-between ${isSelected
-                    ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
+                  ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 font-semibold'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:bg-slate-50 font-medium'
                   }`}
               >
                 <span>{spec}</span>
