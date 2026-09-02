@@ -1,21 +1,45 @@
 import { useContext, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { setToken } = useContext(AppContext)
+  const { backendUrl, token, setToken } = useContext(AppContext)
 
   const [state, setState] = useState('sign Up')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const onSubmitHandler = async (event) => {
     event.preventDefault()
-    setToken(true)
-    navigate('/')
+
+    try {
+      if (state === 'login') {
+        const { data } = await axios.post(backendUrl + '/api/user/login', { email, password })
+        if (data.success) {
+          setToken(data.token)
+          navigate('/')
+        } else {
+          toast.error(data.message)
+        }
+      } else {
+        const { data } = await axios.post(backendUrl + '/api/user/register', { name, phone, email, password })
+        if (data.success) {
+          setToken(data.token)
+          navigate('/')
+        } else {
+          toast.error(data.message)
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error(error.message)
+    } 
   }
 
   return (
@@ -74,6 +98,26 @@ const Login = () => {
                   placeholder='Enter your full name'
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Phone Number Input (Sign Up Only) */}
+          {state === 'sign Up' && (
+            <div className='flex flex-col gap-1.5'>
+              <label className='uppercase tracking-wider text-[11px] text-slate-500'>
+                Phone Number
+              </label>
+              <div className='flex items-center border border-slate-200 rounded-2xl px-3.5 py-3 bg-slate-50/50 focus-within:bg-white focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-200'>
+                <span className='text-slate-400 mr-2 text-sm'>📱</span>
+                <input
+                  className='w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm font-normal'
+                  type='tel'
+                  placeholder='Enter your phone number'
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
                   required
                 />
               </div>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Architecture Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .diagram-wrapper {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      padding: 40px;
+      overflow-x: auto;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Project Architecture Diagram</h1>
+  <p class="subtitle">Frontend &middot; Admin &middot; Backend &middot; Database &mdash; complete data flow</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Frontend (React)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Admin (React)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#eab308"></div>Backend (Express)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f43f5e"></div>Database (MongoDB)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Middleware</div>
+    <div class="legend-item">&#8212; Solid = Request &nbsp; ╌╌ Dashed = Response</div>
+  </div>
+
+  <div class="diagram-wrapper">
+    <div class="mermaid">
+graph TD
+
+subgraph FE ["FRONTEND  (React + Vite)"]
+  F1["main.jsx - Wraps app in AppContextProvider"]
+  subgraph FCTX ["AppContext.jsx"]
+    F2["State: doctors, token, backendUrl, currencySymbol"]
+    F3["getDoctorsData() - fetch GET /api/doctor/list"]
+  end
+  subgraph FPAGES ["Pages"]
+    FP1[Home] & FP2[Doctors] & FP3[Appointment]
+    FP4[Login] & FP5[MyProfile] & FP6[MyAppointment]
+  end
+  subgraph FCOMP ["Components"]
+    FC1[Navbar] & FC2[Header] & FC3[TopDoctors]
+    FC4[RelatedDoctors] & FC5[SpecialityMenu] & FC6[Footer]
+  end
+end
+
+subgraph AD ["ADMIN  (React + Vite)"]
+  A1["main.jsx - Wraps app in AdminContextProvider"]
+  subgraph ACTX ["AdminContext.jsx"]
+    A2["State: aToken, doctors, appointments, dashData"]
+    A3["getAllDoctors() POST /api/admin/all-doctors
+getAllAppointments() GET /api/admin/appointments
+cancelAppointment() POST /api/admin/cancel-appointment
+getDashData() GET /api/admin/dashboard
+changeAvailability() POST /api/admin/change-availability"]
+  end
+  subgraph APAGES ["Pages"]
+    AP1[login.jsx] & AP2[Dashboard] & AP3[AddDoctor]
+    AP4[DoctorsList] & AP5[AllAppointment]
+  end
+  subgraph ACOMP ["Components"]
+    AC1[Navbar] & AC2[Sidebar]
+  end
+end
+
+subgraph BE ["BACKEND  (Node.js + Express)"]
+  SRV["server.js - Express, cors, json middleware, Port 9000"]
+  subgraph ROUTES ["Routes"]
+    R1["doctorRoute.js - GET /api/doctor/list"]
+    R2["adminRoute.js - POST /login, /add-doctor, /all-doctors
+POST /change-availability, /cancel-appointment
+GET /appointments, /dashboard"]
+  end
+  subgraph MW ["Middlewares"]
+    M1["authAdmin.js - Verifies JWT from Authorization header"]
+    M2["multer.js - Handles image file upload"]
+  end
+  subgraph CTRL ["Controllers"]
+    C1["doctorController.js - doctorList()"]
+    C2["adminController.js
+adminLogin(), addDoctor(), allDoctors()
+appointmentsAdmin(), appointmentCancel()
+adminDashboard(), changeAvailability()"]
+  end
+  subgraph MODELS ["Mongoose Models"]
+    MD1[doctorModel.js]
+    MD2[userModel.js]
+    MD3[appointmentModel.js]
+  end
+  EXT["Cloudinary - Image Storage"]
+end
+
+subgraph DB ["DATABASE"]
+  MONGO[("MongoDB
+doctors collection
+users collection
+appointments collection")]
+end
+
+F1 --> FCTX
+A1 --> ACTX
+
+F2 -->|provides state| FPAGES
+F3 -->|called on mount| FPAGES
+FPAGES --> FCOMP
+
+A2 -->|provides state| APAGES
+A3 -->|called by pages| APAGES
+APAGES --> ACOMP
+
+F3 -->|GET /api/doctor/list - no auth| SRV
+A3 -->|HTTP requests with JWT header| SRV
+
+SRV --> R1
+SRV --> R2
+
+R1 --> C1
+R2 --> M1
+M1 -->|JWT valid, next| C2
+R2 -->|add-doctor only| M2
+M2 --> C2
+
+C1 --> MD1
+C2 --> MD1
+C2 --> MD2
+C2 --> MD3
+C2 -->|upload image| EXT
+
+MD1 <-->|Mongoose CRUD| MONGO
+MD2 <-->|Mongoose CRUD| MONGO
+MD3 <-->|Mongoose CRUD| MONGO
+
+C1 -.->|JSON doctors| SRV
+C2 -.->|JSON data| SRV
+SRV -.->|HTTP 200 JSON| F3
+SRV -.->|HTTP 200 JSON| A3
+F3 -.->|setDoctors| F2
+A3 -.->|setState| A2
+F2 -.->|re-render| FPAGES
+A2 -.->|re-render| APAGES
+
+style FE fill:#1a2744,stroke:#3b82f6,stroke-width:2px,color:#e2e8f0
+style AD fill:#142d1f,stroke:#22c55e,stroke-width:2px,color:#e2e8f0
+style BE fill:#2a2500,stroke:#eab308,stroke-width:2px,color:#e2e8f0
+style DB fill:#2a0d14,stroke:#f43f5e,stroke-width:2px,color:#e2e8f0
+style FCTX fill:#1e3a6e,stroke:#3b82f6,stroke-width:1px
+style FPAGES fill:#1a2f58,stroke:#3b82f6,stroke-width:1px
+style FCOMP fill:#1a2f58,stroke:#3b82f6,stroke-width:1px
+style ACTX fill:#163d26,stroke:#22c55e,stroke-width:1px
+style APAGES fill:#123020,stroke:#22c55e,stroke-width:1px
+style ACOMP fill:#123020,stroke:#22c55e,stroke-width:1px
+style ROUTES fill:#332d00,stroke:#eab308,stroke-width:1px
+style MW fill:#2d1f4a,stroke:#a855f7,stroke-width:1px
+style CTRL fill:#332d00,stroke:#eab308,stroke-width:1px
+style MODELS fill:#332d00,stroke:#eab308,stroke-width:1px
+style M1 fill:#2d1f4a,stroke:#a855f7,stroke-width:1px
+style M2 fill:#2d1f4a,stroke:#a855f7,stroke-width:1px
+style EXT fill:#1f1f3a,stroke:#6366f1,stroke-width:1px
+    </div>
+  </div>
+
+  <p class="footer-note">Solid lines = Request flow &nbsp;|&nbsp; Dashed lines = Response flow back to context and UI</p>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      flowchart: {
+        curve: 'basis',
+        padding: 20,
+        nodeSpacing: 50,
+        rankSpacing: 60
+      },
+      themeVariables: {
+        darkMode: true,
+        background: '#1e2130',
+        primaryColor: '#1e3a6e',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#3b82f6',
+        lineColor: '#94a3b8',
+        secondaryColor: '#163d26',
+        tertiaryColor: '#332d00'
+      }
+    });
+  </script>
+</body>
+</html>

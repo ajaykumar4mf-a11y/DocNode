@@ -5,8 +5,16 @@ import { AppContext } from '../context/AppContext'
 
 const Navbar = () => {
   const navigate = useNavigate()
+
   const { token, setToken } = useContext(AppContext)
+
   const [showMenu, setShowMenu] = useState(false)
+
+  const logout = () => {  
+    setToken(false)
+    localStorage.removeItem('token')
+    navigate('/')
+  } 
 
   return (
     <div className='sticky top-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between text-sm py-4 mb-5 border-b border-slate-100 flex-nowrap'>
@@ -110,7 +118,7 @@ const Navbar = () => {
                 <hr className='border-slate-100 my-1' />
 
                 <p
-                  onClick={() => setToken(false)}
+                  onClick={logout}
                   className='flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer font-semibold'
                 >
                   <span className='text-rose-400 text-xs'>🚪</span> Logout

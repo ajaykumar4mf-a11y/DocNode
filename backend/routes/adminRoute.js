@@ -14,6 +14,5 @@ adminRouter.get("/appointments", authAdmin, appointmentsAdmin);
 adminRouter.post("/appointments", authAdmin, appointmentsAdmin);
 adminRouter.post("/cancel-appointment", authAdmin, appointmentCancel);
 adminRouter.get("/dashboard", authAdmin, adminDashboard);
-adminRouter.post("/dashboard", authAdmin, adminDashboard);
 
 export default adminRouter;
