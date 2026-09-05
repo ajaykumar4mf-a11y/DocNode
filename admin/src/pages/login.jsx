@@ -1,79 +1,159 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { AdminContext } from '../context/AdminContext.jsx' 
+import { assets } from '../assets/assets'
 import axios from 'axios'   
 import { toast } from 'react-toastify'
 
 const Login = () => {
-
     const [state, setState] = useState('Admin')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
 
-    const {setAToken, backendUrl} = useContext(AdminContext)
+    const { setAToken, backendUrl } = useContext(AdminContext)
 
     const onSubmitHandler = async (event) => {
         event.preventDefault()
 
-        try{
-            if(state === 'Admin'){
+        try {
+            setLoading(true)
+            if (state === 'Admin') {
+                const { data } = await axios.post(backendUrl + '/api/admin/login', { email, password })
 
-                const {data} = await axios.post(backendUrl + '/api/admin/login', {email, password})
-
-                if(data.success){
+                if (data.success) {
                     localStorage.setItem('aToken', data.token)
                     setAToken(data.token)
-                    toast.success('Login Successful')
-                }else{
+                    toast.success('Signed in successfully')
+                } else {
                     toast.error(data.message)
                 }
-            }else{
-                
+            } else {
+                toast.info('Doctor portal authentication will be enabled soon.')
             }
-        }
-        catch(error){
+        } catch (error) {
             toast.error(error.message)
-            console.log(error)  
+            console.error(error)  
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
-        <form onSubmit={onSubmitHandler} className='min-h-[80vh] flex items-center justify-center p-4'>
-            <div className='flex flex-col gap-4 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border border-zinc-200 rounded-xl text-zinc-600 text-sm shadow-lg bg-white'>
-                <p className='text-2xl font-semibold m-auto'>
-                    <span className='text-primary'>{state}</span> Login
+        <div className='w-full max-w-md mx-auto my-auto'>
+            {/* Logo and Intro */}
+            <div className='text-center mb-8'>
+                <img 
+                    className='h-9 w-auto mx-auto object-contain' 
+                    src={assets.admin_logo} 
+                    alt="DocNode Admin Logo" 
+                />
+                <p className='text-xs text-slate-500 mt-2'>
+                    Hospital administration & clinical staff portal
                 </p>
-                <div className='w-full'>
-                    <p className='font-medium text-zinc-700'>Email</p>
-                    <input 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        value={email} 
-                        className='border border-zinc-300 rounded w-full p-2.5 mt-1 outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors text-sm' 
-                        type="email" 
-                        placeholder='Enter email' 
-                        required 
-                    />
-                </div>
-                <div className='w-full'>
-                    <p className='font-medium text-zinc-700'>Password</p>
-                    <input 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        value={password} 
-                        className='border border-zinc-300 rounded w-full p-2.5 mt-1 outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors text-sm' 
-                        type="password" 
-                        placeholder='Enter password' 
-                        required 
-                    />
-                </div>
-                <button type='submit' className='bg-primary text-white w-full py-2.5 rounded-md text-base font-medium cursor-pointer hover:bg-primary/90 transition-colors shadow-sm'>
-                    Login
-                </button>
-                {
-                    state === 'Admin' 
-                        ? <p className='text-xs text-zinc-500'>Doctor Login? <span className='text-primary underline cursor-pointer font-medium' onClick={() => setState('Doctor')}>Click here</span></p>
-                        : <p className='text-xs text-zinc-500'>Admin Login? <span className='text-primary underline cursor-pointer font-medium' onClick={() => setState('Admin')}>Click here</span></p>
-                }
             </div>
-        </form>
+
+            <form 
+                onSubmit={onSubmitHandler} 
+                className='bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6'
+            >
+                {/* Role Switcher Tabs */}
+                <div className='flex p-1 bg-slate-100 rounded-xl'>
+                    <button
+                        type='button'
+                        onClick={() => setState('Admin')}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                            state === 'Admin'
+                                ? 'bg-white text-slate-900 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                    >
+                        Administrator
+                    </button>
+                    <button
+                        type='button'
+                        onClick={() => setState('Doctor')}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                            state === 'Doctor'
+                                ? 'bg-white text-slate-900 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                    >
+                        Doctor Portal
+                    </button>
+                </div>
+
+                <div className='space-y-4'>
+                    <div>
+                        <label className='block text-xs font-semibold text-slate-700 mb-1.5'>
+                            Email Address
+                        </label>
+                        <input 
+                            onChange={(e) => setEmail(e.target.value)} 
+                            value={email} 
+                            className='w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-slate-800 placeholder:text-slate-400' 
+                            type="email" 
+                            placeholder='admin@docnode.com' 
+                            required 
+                        />
+                    </div>
+
+                    <div>
+                        <label className='block text-xs font-semibold text-slate-700 mb-1.5'>
+                            Password
+                        </label>
+                        <input 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            value={password} 
+                            className='w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-slate-800 placeholder:text-slate-400' 
+                            type="password" 
+                            placeholder='••••••••' 
+                            required 
+                        />
+                    </div>
+                </div>
+
+                <button 
+                    type='submit' 
+                    disabled={loading}
+                    className='w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl text-sm font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer active:scale-95 flex items-center justify-center gap-2'
+                >
+                    {loading ? (
+                        <>
+                            <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+                            <span>Signing in...</span>
+                        </>
+                    ) : (
+                        <span>Sign In to {state}</span>
+                    )}
+                </button>
+
+                <div className='text-center pt-2'>
+                    {state === 'Admin' ? (
+                        <p className='text-xs text-slate-500'>
+                            Need doctor account access?{' '}
+                            <button 
+                                type='button'
+                                onClick={() => setState('Doctor')}
+                                className='text-primary font-semibold hover:underline cursor-pointer'
+                            >
+                                Doctor sign in
+                            </button>
+                        </p>
+                    ) : (
+                        <p className='text-xs text-slate-500'>
+                            Hospital administrator?{' '}
+                            <button 
+                                type='button'
+                                onClick={() => setState('Admin')}
+                                className='text-primary font-semibold hover:underline cursor-pointer'
+                            >
+                                Admin sign in
+                            </button>
+                        </p>
+                    )}
+                </div>
+            </form>
+        </div>
     )
 }
 

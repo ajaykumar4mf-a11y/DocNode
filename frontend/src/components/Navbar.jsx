@@ -6,7 +6,7 @@ import { AppContext } from '../context/AppContext'
 const Navbar = () => {
   const navigate = useNavigate()
 
-  const { token, setToken } = useContext(AppContext)
+  const { token, setToken, userData } = useContext(AppContext)
 
   const [showMenu, setShowMenu] = useState(false)
 
@@ -79,11 +79,12 @@ const Navbar = () => {
 
       {/* User Actions & Mobile Hamburger */}
       <div className='flex items-center gap-2.5 sm:gap-4 flex-shrink-0'>
-        {token ? (
+        {token && userData 
+        ? (
           <div className='flex items-center gap-2 p-1.5 pl-2 rounded-full border border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer group relative'>
             <img
               className='w-8 h-8 rounded-full object-cover object-top border border-slate-100 ring-2 ring-indigo-50 group-hover:ring-primary/20 transition-all flex-shrink-0'
-              src={assets.profile_pic}
+              src={userData.image} 
               alt='User profile'
             />
             <img
