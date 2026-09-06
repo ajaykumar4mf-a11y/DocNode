@@ -1,10 +1,12 @@
 import { useContext } from 'react'
 import { assets } from '../assets/assets'
 import { AdminContext } from '../context/AdminContext'
+import { DoctorContext } from '../context/DoctorContext'
 import { useNavigate } from 'react-router-dom'
 
 const Navbar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
     const { aToken, setAToken } = useContext(AdminContext)
+    const { dToken, setDToken } = useContext(DoctorContext)
     const navigate = useNavigate()
 
     const logout = () => {
@@ -12,6 +14,10 @@ const Navbar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
         if (aToken) {
             setAToken('')
             localStorage.removeItem('aToken')
+        }
+        if (dToken) {
+            setDToken('')
+            localStorage.removeItem('dToken')
         }
     }
 
@@ -37,7 +43,7 @@ const Navbar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                     </button>
 
                     <div 
-                        onClick={() => navigate('/admin-dashboard')} 
+                        onClick={() => navigate(aToken ? '/admin-dashboard' : '/doctor-dashboard')} 
                         className='flex items-center gap-3 cursor-pointer select-none group'
                     >
                         <img 
@@ -56,7 +62,7 @@ const Navbar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                     {/* Status Pill */}
                     <div className='hidden sm:flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80'>
                         <span className='w-2 h-2 rounded-full bg-emerald-500 animate-pulse'></span>
-                        <span className='font-medium text-slate-700'>Admin Active</span>
+                        <span className='font-medium text-slate-700'>{aToken ? 'Admin Active' : 'Doctor Active'}</span>
                     </div>
 
                     <button 

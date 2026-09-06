@@ -2,13 +2,15 @@ import { useContext } from 'react'
 import { AdminContext } from '../context/AdminContext'
 import { NavLink } from 'react-router-dom'
 import { assets } from '../assets/assets'
+import { DoctorContext } from '../context/DoctorContext'
 
 const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
   const { aToken } = useContext(AdminContext)
+  const {dToken} = useContext(DoctorContext)
 
-  if (!aToken) return null
+  if (!aToken && !dToken) return null
 
-  const navItems = [
+  const adminNavItems = [
     {
       to: '/admin-dashboard',
       label: 'Dashboard',
@@ -31,6 +33,26 @@ const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
     }
   ]
 
+  const doctorNavItems = [
+    {
+      to: '/doctor-dashboard',
+      label: 'Dashboard',
+      icon: assets.home_icon,
+    },
+    {
+      to: '/doctor-appointments',
+      label: 'Appointments',
+      icon: assets.appointment_icon,
+    },
+    {
+      to: '/doctor-profile',
+      label: 'Profile',
+      icon: assets.doctor_icon || assets.people_icon,
+    }
+  ]
+
+  const navItems = aToken ? adminNavItems : (dToken ? doctorNavItems : [])
+
   const handleNavClick = () => {
     if (setMobileMenuOpen) {
       setMobileMenuOpen(false)
@@ -40,7 +62,9 @@ const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
   const sidebarContent = (
     <nav className='flex flex-col h-full py-6 px-3 sm:px-4'>
       <div className='px-3 mb-3'>
-        <p className='text-[11px] font-bold uppercase tracking-wider text-slate-400'>Management</p>
+        <p className='text-[11px] font-bold uppercase tracking-wider text-slate-400'>
+          {aToken ? 'Management' : 'Doctor Portal'}
+        </p>
       </div>
 
       <ul className='space-y-1.5'>
@@ -81,12 +105,16 @@ const Sidebar = ({ mobileMenuOpen, setMobileMenuOpen }) => {
       {/* Bottom info section */}
       <div className='mt-auto pt-6 px-3 border-t border-slate-100'>
         <div className='bg-slate-50 border border-slate-200/70 rounded-xl p-3 text-xs text-slate-500'>
-          <p className='font-semibold text-slate-700'>DocNode Hospital Admin</p>
-          <p className='text-[11px] text-slate-400 mt-0.5'>Secure Clinic Management System</p>
+          <p className='font-semibold text-slate-700'>
+            {aToken ? 'DocNode Hospital Admin' : 'DocNode Doctor Portal'}
+          </p>
+          <p className='text-[11px] text-slate-400 mt-0.5'>
+            {aToken ? 'Secure Clinic Management System' : 'Doctor Practice Management'}
+          </p>
         </div>
       </div>
     </nav>
-  )
+  ) 
 
   return (
     <>

@@ -2,9 +2,11 @@ import { useContext, useEffect } from 'react'
 import { AdminContext } from '../../context/AdminContext'
 import { assets } from '../../assets/assets'
 import { useNavigate } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext'
 
 const Dashboard = () => {
   const { aToken, dashData, getDashData, cancelAppointment, currency } = useContext(AdminContext)
+  const { slotDateFormat } = useContext(AppContext)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -160,7 +162,7 @@ const Dashboard = () => {
                           <span>•</span>
                         </>
                       )}
-                      <span>{item.slotDate} at {item.slotTime}</span>
+                      <span>{slotDateFormat(item.slotDate)} at {item.slotTime}</span>
                       {item.amount && (
                         <>
                           <span>•</span>

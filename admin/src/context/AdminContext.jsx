@@ -119,6 +119,17 @@ const AdminContextProvider = (props) => {
         return age > 0 ? age : 18
     }
 
+    const slotDateFormat = (slotDate) => {
+        if (!slotDate) return ''
+        const dateArray = String(slotDate).split('_')
+        if (dateArray.length === 3) {
+            const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            const monthName = months[Number(dateArray[1])] || dateArray[1]
+            return `${dateArray[0]} ${monthName} ${dateArray[2]}`
+        }
+        return slotDate
+    }
+
     const value = {
         aToken,
         setAToken,
@@ -133,6 +144,8 @@ const AdminContextProvider = (props) => {
         dashData,
         getDashData,
         calculateAge,
+        slotDateFormat,
+        formatDateSlot: slotDateFormat,
         currency
     }
 

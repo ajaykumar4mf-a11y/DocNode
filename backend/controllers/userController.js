@@ -6,6 +6,11 @@ import { v2 as cloudinary } from 'cloudinary';
 import doctorModel from '../models/doctorModel.js';
 import appointmentModel from '../models/appointmentModel.js';
 import razorpay from 'razorpay';
+import { 
+    sendPaymentConfirmationEmail, 
+    sendBookingConfirmationEmail, 
+    sendAppointmentCancelledEmail 
+} from '../config/emailService.js';
 
 
 // API to register user
@@ -15,6 +20,11 @@ const registerUser = async (req, res) => {
 
         if (!name || !phone || !email || !password) {
             return res.json({ success: false, message: "All fields are required" })
+        }
+
+        const cleanPhone = String(phone).replace(/\D/g, '');
+        if (cleanPhone.length !== 10) {
+            return res.json({ success: false, message: "Phone number must be exactly 10 digits" });
         }
 
         //validating email and password
@@ -38,7 +48,7 @@ const registerUser = async (req, res) => {
 
         const newUser = new usermodel({
             name,
-            phone,
+            phone: cleanPhone,
             email,
             password: hashedPassword
         })
@@ -88,6 +98,49 @@ const loginUser = async (req, res) => {
     }
 }
 
+// API to reset user password (Forgot password)
+const resetPassword = async (req, res) => {
+    try {
+        const { email, newPassword, phone } = req.body;
+
+        if (!email || !newPassword) {
+            return res.json({ success: false, message: "Email and new password are required" });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.json({ success: false, message: "Invalid email address" });
+        }
+
+        if (!validator.isStrongPassword(newPassword)) {
+            return res.json({ success: false, message: "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol" });
+        }
+
+        const user = await usermodel.findOne({ email });
+        if (!user) {
+            return res.json({ success: false, message: "No account found with this email address" });
+        }
+
+        if (phone) {
+            const cleanPhone = String(phone).replace(/\D/g, '');
+            const userPhone = String(user.phone || '').replace(/\D/g, '');
+            if (cleanPhone && userPhone && cleanPhone !== userPhone) {
+                return res.json({ success: false, message: "Phone number does not match account records" });
+            }
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashedPassword;
+        await user.save();
+
+        res.json({ success: true, message: "Password reset successfully. You can now log in." });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
 // API to get user profile data
 const getProfileData = async (req, res) => {
    
@@ -118,6 +171,11 @@ const updateProfile = async(req, res) =>{
             return res.json({success: false, message: "All fields are required"})
         }
 
+        const cleanPhone = String(phone).replace(/\D/g, '');
+        if (cleanPhone.length !== 10) {
+            return res.json({ success: false, message: "Phone number must be exactly 10 digits" });
+        }
+
         let parsedAddress = address;
         if (typeof address === "string") {
             try {
@@ -132,9 +190,9 @@ const updateProfile = async(req, res) =>{
             // upload image to cloudinary
             const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: 'image' });
             const imageUrl = imageUpload.secure_url;
-            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone, address: parsedAddress, dob, gender, image: imageUrl}, { new: true });
+            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone: cleanPhone, address: parsedAddress, dob, gender, image: imageUrl}, { new: true });
         } else {
-            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone, address: parsedAddress, dob, gender}, { new: true });
+            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone: cleanPhone, address: parsedAddress, dob, gender}, { new: true });
         }
 
         if (!updatedUser) {
@@ -202,6 +260,11 @@ const bookAppointment = async (req, res) => {
         // save new slots data in doctor model
         await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
+        // Send booking confirmation email asynchronously
+        sendBookingConfirmationEmail({ appointment: newAppointment }).catch(err => {
+            console.error('[EmailService] Booking notification error:', err);
+        });
+
         res.json({ success: true, message: "Appointment booked successfully" });
 
     } catch (error) {
@@ -251,6 +314,11 @@ const cancelAppointment = async (req, res) => {
             }
         }
 
+        // Send appointment cancellation email
+        sendAppointmentCancelledEmail({ appointment: appointmentData, cancelledBy: 'Patient' }).catch(err => {
+            console.error('[EmailService] Cancellation notification error:', err);
+        });
+
         res.json({ success: true, message: "Appointment Cancelled" });
     } catch (error) {
         console.log(error);
@@ -298,7 +366,23 @@ const verifyRazorpay = async (req, res) => {
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
 
         if (orderInfo.status === 'paid') {
-            await appointmentModel.findByIdAndUpdate(orderInfo.receipt, { payment: true });
+            const updatedAppointment = await appointmentModel.findByIdAndUpdate(
+                orderInfo.receipt, 
+                { payment: true },
+                { new: true }
+            );
+
+            // Send payment confirmation and receipt email
+            if (updatedAppointment) {
+                sendPaymentConfirmationEmail({
+                    appointment: updatedAppointment,
+                    paymentId: orderInfo.id || razorpay_order_id,
+                    orderId: razorpay_order_id
+                }).catch(err => {
+                    console.error('[EmailService] Payment receipt error:', err);
+                });
+            }
+
             res.json({ success: true, message: "Payment Successful" });
         } else {
             res.json({ success: false, message: "Payment Failed" });
@@ -309,4 +393,4 @@ const verifyRazorpay = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, getProfileData, updateProfile, bookAppointment, listAppointments, cancelAppointment, appointmentPayment, verifyRazorpay }  
+export { registerUser, loginUser, resetPassword, getProfileData, updateProfile, bookAppointment, listAppointments, cancelAppointment, appointmentPayment, verifyRazorpay }  

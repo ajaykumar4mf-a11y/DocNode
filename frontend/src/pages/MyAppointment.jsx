@@ -4,16 +4,9 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const MyAppointment = () => {
-  const { backendUrl, token, getDoctorsData, userData } = useContext(AppContext)
+  const { backendUrl, token, getDoctorsData, userData, slotDateFormat } = useContext(AppContext)
 
   const [appointments, setAppointments] = useState([])
-  const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-  const slotDateFormat = (slotDate) => {
-    if (!slotDate) return ''
-    const dateArray = slotDate.split('_')
-    return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
-  }
 
   const getUserAppointments = async () => {
     try {

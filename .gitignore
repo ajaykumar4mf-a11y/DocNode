@@ -11,6 +11,9 @@ node_modules/
 .env.test.local
 .env.production.local
 backend/.env
+frontend/.env
+admin/.env
+.agent/
 
 # Production build outputs
 dist/
@@ -36,3 +39,6 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Internal & Planning Notes
+ROADMAP.md

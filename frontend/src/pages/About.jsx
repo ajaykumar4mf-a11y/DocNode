@@ -18,10 +18,10 @@ const About = () => {
         {/* Image Frame */}
         <div className='w-full md:w-5/12 flex-shrink-0'>
           <div className='relative rounded-3xl overflow-hidden shadow-xl border border-slate-100 bg-slate-50 group'>
-            <img 
-              className='w-full h-auto max-h-[680px] object-contain transition-transform duration-500 group-hover:scale-[1.02]' 
-              src={assets.about_image} 
-              alt="About DocNode Healthcare" 
+            <img
+              className='w-full h-auto max-h-[680px] object-contain transition-transform duration-500 group-hover:scale-[1.02]'
+              src={assets.about_image}
+              alt="About DocNode Healthcare"
             />
           </div>
         </div>
@@ -34,7 +34,7 @@ const About = () => {
           <p>
             DocNode is committed to excellence in healthcare technology. We continuously strive to enhance our platform, integrating reliable advancements to improve user experience and deliver superior service. Whether you're booking your first appointment or managing ongoing care, DocNode supports you every step of the way.
           </p>
-          
+
           <div className='bg-slate-50 p-6 rounded-2xl border border-slate-100 mt-2'>
             <h3 className='text-slate-900 text-base font-bold mb-2'>Our Vision</h3>
             <p className='text-slate-600 text-sm leading-relaxed'>

@@ -98,8 +98,8 @@ const Navbar = () => {
               <div className='w-56 bg-white border border-slate-100 shadow-2xl rounded-2xl p-2 flex flex-col gap-0.5'>
                 {/* Profile Header snippet */}
                 <div className='px-3 py-2.5 border-b border-slate-100 mb-1 bg-slate-50/60 rounded-xl'>
-                  <p className='font-bold text-slate-900 text-xs'>Edward Vincent</p>
-                  <p className='text-[11px] text-slate-400 font-normal truncate mt-0.5'>edward.vincent@example.com</p>
+                  <p className='font-bold text-slate-900 text-xs truncate'>{userData?.name || 'User Profile'}</p>
+                  <p className='text-[11px] text-slate-400 font-normal truncate mt-0.5'>{userData?.email || ''}</p>
                 </div>
 
                 <p

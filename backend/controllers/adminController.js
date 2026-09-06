@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
+import { sendAppointmentCancelledEmail } from "../config/emailService.js";
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -89,7 +90,7 @@ const adminLogin = async (req, res) => {
         const adminEmail = process.env.ADMIN_EMAIL;
         const adminPassword = process.env.ADMIN_PASSWORD || process.env.ADIMIN_PASSWORD;
 
-        if (email === adminEmail && password === adminPassword) {
+        if (email && adminEmail && email.trim().toLowerCase() === adminEmail.trim().toLowerCase() && password === adminPassword) {
             const token = jwt.sign(email + password, process.env.JWT_SECRET || "DocNodeAdminSecretKey2026");
             return res.json({ success: true, token });
         } else {
@@ -146,6 +147,11 @@ const appointmentCancel = async (req, res) => {
                 await doctorModel.findByIdAndUpdate(docId, { slots_booked });
             }
         }
+
+        // Send appointment cancellation email to patient
+        sendAppointmentCancelledEmail({ appointment: appointmentData, cancelledBy: 'Admin' }).catch(err => {
+            console.error('[EmailService] Admin cancel notification error:', err);
+        });
 
         res.json({ success: true, message: "Appointment Cancelled" });
     } catch (error) {
