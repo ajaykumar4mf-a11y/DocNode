@@ -9,13 +9,28 @@ const getTransporter = () => {
     const { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
 
     if (SMTP_USER && SMTP_PASS) {
+        const cleanPass = SMTP_PASS.replace(/\s+/g, '');
+        const host = SMTP_HOST || 'smtp.gmail.com';
+        const port = Number(SMTP_PORT) || 465;
+        const isGmail = host.includes('gmail') || !SMTP_HOST;
+
+        if (isGmail) {
+            return nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: SMTP_USER,
+                    pass: cleanPass
+                }
+            });
+        }
+
         return nodemailer.createTransport({
-            host: SMTP_HOST || 'smtp.gmail.com',
-            port: Number(SMTP_PORT) || 587,
-            secure: Number(SMTP_PORT) === 465,
+            host: host,
+            port: port,
+            secure: port === 465,
             auth: {
                 user: SMTP_USER,
-                pass: SMTP_PASS
+                pass: cleanPass
             }
         });
     }
@@ -45,6 +60,7 @@ const sendMailSafe = async ({ to, subject, html, text }) => {
         const transporter = getTransporter();
 
         if (!transporter) {
+            console.warn('[EmailService] SMTP credentials missing in environment variables. Email sending skipped.');
             return { success: false, reason: 'SMTP not configured' };
         }
 
