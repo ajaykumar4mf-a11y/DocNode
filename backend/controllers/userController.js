@@ -261,9 +261,17 @@ const bookAppointment = async (req, res) => {
         await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
         // Send booking confirmation email asynchronously
-        sendBookingConfirmationEmail({ appointment: newAppointment }).catch(err => {
-            console.error('[EmailService] Booking notification error:', err);
-        });
+        sendBookingConfirmationEmail({ appointment: newAppointment })
+            .then(res => {
+                if (res && !res.success) {
+                    console.error('[EmailService] Booking email failed:', res.error || res.reason);
+                } else if (res) {
+                    console.log('[EmailService] Booking email sent successfully:', res.messageId);
+                }
+            })
+            .catch(err => {
+                console.error('[EmailService] Booking notification error:', err);
+            });
 
         res.json({ success: true, message: "Appointment booked successfully" });
 

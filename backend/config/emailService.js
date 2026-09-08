@@ -5,20 +5,21 @@ import nodemailer from 'nodemailer';
  * If SMTP credentials are missing, falls back to a development logger
  * so local development and testing never crash or block API responses.
  */
-const getTransporter = () => {
-    const { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
+export const getTransporter = () => {
+    let { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
 
     if (SMTP_USER && SMTP_PASS) {
-        const cleanPass = SMTP_PASS.replace(/\s+/g, '');
-        const host = SMTP_HOST || 'smtp.gmail.com';
-        const port = Number(SMTP_PORT) || 465;
-        const isGmail = host.includes('gmail') || !SMTP_HOST;
+        const cleanUser = SMTP_USER.trim().replace(/^["']|["']$/g, '');
+        const cleanPass = SMTP_PASS.replace(/\s+/g, '').replace(/^["']|["']$/g, '');
+        const host = (SMTP_HOST || 'smtp.gmail.com').trim().replace(/^["']|["']$/g, '');
+        const port = Number(String(SMTP_PORT || '465').replace(/^["']|["']$/g, '')) || 465;
+        const isGmail = host.includes('gmail') || cleanUser.endsWith('@gmail.com');
 
         if (isGmail) {
             return nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    user: SMTP_USER,
+                    user: cleanUser,
                     pass: cleanPass
                 }
             });
@@ -29,7 +30,7 @@ const getTransporter = () => {
             port: port,
             secure: port === 465,
             auth: {
-                user: SMTP_USER,
+                user: cleanUser,
                 pass: cleanPass
             }
         });
@@ -38,19 +39,24 @@ const getTransporter = () => {
     return null;
 };
 
-const defaultSender = () => {
-    const user = process.env.SMTP_USER || 'no-reply@docnode.com';
-    return process.env.SENDER_EMAIL || `"DocNode Healthcare" <${user}>`;
+export const defaultSender = () => {
+    let sender = process.env.SENDER_EMAIL;
+    if (sender) {
+        sender = sender.trim().replace(/^["']|["']$/g, '');
+        return sender;
+    }
+    const user = (process.env.SMTP_USER || 'no-reply@docnode.com').trim().replace(/^["']|["']$/g, '');
+    return `"DocNode Healthcare" <${user}>`;
 };
 
-const getClientUrl = () => {
-    return process.env.CLIENT_URL || 'http://localhost:5173';
+export const getClientUrl = () => {
+    return (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/^["']|["']$/g, '');
 };
 
 /**
  * Reusable wrapper to send emails with anti-spam headers and graceful error handling.
  */
-const sendMailSafe = async ({ to, subject, html, text }) => {
+export const sendMailSafe = async ({ to, subject, html, text }) => {
     try {
         if (!to) {
             console.warn('[EmailService] Recipient email is missing. Skipping send.');
