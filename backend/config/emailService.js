@@ -5,95 +5,89 @@ import nodemailer from 'nodemailer';
  * If SMTP credentials are missing, falls back to a development logger
  * so local development and testing never crash or block API responses.
  */
-export const getTransporter = () => {
-    let { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
+const getTransporter = () => {
+  const { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
 
-    if (SMTP_USER && SMTP_PASS) {
-        const cleanUser = SMTP_USER.trim().replace(/^["']|["']$/g, '');
-        const cleanPass = SMTP_PASS.replace(/\s+/g, '').replace(/^["']|["']$/g, '');
-        const host = (SMTP_HOST || 'smtp.gmail.com').trim().replace(/^["']|["']$/g, '');
-        const port = Number(String(SMTP_PORT || '465').replace(/^["']|["']$/g, '')) || 465;
-        const isGmail = host.includes('gmail') || cleanUser.endsWith('@gmail.com');
+  if (SMTP_USER && SMTP_PASS) {
+    const cleanPass = SMTP_PASS.replace(/\s+/g, '');
+    const host = SMTP_HOST || 'smtp.gmail.com';
+    const port = Number(SMTP_PORT) || 465;
+    const isGmail = host.includes('gmail') || !SMTP_HOST;
 
-        if (isGmail) {
-            return nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: cleanUser,
-                    pass: cleanPass
-                }
-            });
+    if (isGmail) {
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: SMTP_USER,
+          pass: cleanPass
         }
-
-        return nodemailer.createTransport({
-            host: host,
-            port: port,
-            secure: port === 465,
-            auth: {
-                user: cleanUser,
-                pass: cleanPass
-            }
-        });
+      });
     }
 
-    return null;
+    return nodemailer.createTransport({
+      host: host,
+      port: port,
+      secure: port === 465,
+      auth: {
+        user: SMTP_USER,
+        pass: cleanPass
+      }
+    });
+  }
+
+  return null;
 };
 
-export const defaultSender = () => {
-    let sender = process.env.SENDER_EMAIL;
-    if (sender) {
-        sender = sender.trim().replace(/^["']|["']$/g, '');
-        return sender;
-    }
-    const user = (process.env.SMTP_USER || 'no-reply@docnode.com').trim().replace(/^["']|["']$/g, '');
-    return `"DocNode Healthcare" <${user}>`;
+const defaultSender = () => {
+  const user = process.env.SMTP_USER || 'no-reply@docnode.com';
+  return process.env.SENDER_EMAIL || `"DocNode Healthcare" <${user}>`;
 };
 
-export const getClientUrl = () => {
-    return (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/^["']|["']$/g, '');
+const getClientUrl = () => {
+  return process.env.CLIENT_URL || 'http://localhost:5173';
 };
 
 /**
  * Reusable wrapper to send emails with anti-spam headers and graceful error handling.
  */
-export const sendMailSafe = async ({ to, subject, html, text }) => {
-    try {
-        if (!to) {
-            console.warn('[EmailService] Recipient email is missing. Skipping send.');
-            return { success: false, reason: 'No recipient' };
-        }
-
-        const transporter = getTransporter();
-
-        if (!transporter) {
-            console.warn('[EmailService] SMTP credentials missing in environment variables. Email sending skipped.');
-            return { success: false, reason: 'SMTP not configured' };
-        }
-
-        const sender = defaultSender();
-        const replyTo = process.env.SMTP_USER || sender;
-
-        const info = await transporter.sendMail({
-            from: sender,
-            replyTo: replyTo,
-            to,
-            subject,
-            text,
-            html,
-            headers: {
-                'X-Entity-Ref-ID': `${Date.now()}-${Math.random().toString(36).substring(7)}`,
-                'X-Priority': '3', // Normal transactional priority
-                'X-Mailer': 'DocNode Healthcare Engine'
-            }
-        });
-
-        console.log(`[EmailService] Email delivered to ${to}. MessageId: ${info.messageId}`);
-        return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error(`[EmailService] Failed to send email to ${to}:`, error.message);
-        // Do not re-throw to ensure payment/booking APIs remain resilient
-        return { success: false, error: error.message };
+const sendMailSafe = async ({ to, subject, html, text }) => {
+  try {
+    if (!to) {
+      console.warn('[EmailService] Recipient email is missing. Skipping send.');
+      return { success: false, reason: 'No recipient' };
     }
+
+    const transporter = getTransporter();
+
+    if (!transporter) {
+      console.warn('[EmailService] SMTP credentials missing in environment variables. Email sending skipped.');
+      return { success: false, reason: 'SMTP not configured' };
+    }
+
+    const sender = defaultSender();
+    const replyTo = process.env.SMTP_USER || sender;
+
+    const info = await transporter.sendMail({
+      from: sender,
+      replyTo: replyTo,
+      to,
+      subject,
+      text,
+      html,
+      headers: {
+        'X-Entity-Ref-ID': `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        'X-Priority': '3', // Normal transactional priority
+        'X-Mailer': 'DocNode Healthcare Engine'
+      }
+    });
+
+    console.log(`[EmailService] Email delivered to ${to}. MessageId: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error(`[EmailService] Failed to send email to ${to}:`, error.message);
+    // Do not re-throw to ensure payment/booking APIs remain resilient
+    return { success: false, error: error.message };
+  }
 };
 
 /**
@@ -166,22 +160,22 @@ const emailLayout = (content, preheader = 'Your DocNode appointment information'
  * 1. Payment Confirmation & Official Receipt Email
  */
 export const sendPaymentConfirmationEmail = async ({ appointment, paymentId = 'N/A', orderId = 'N/A' }) => {
-    const patientName = appointment?.userData?.name || 'Patient';
-    const patientEmail = appointment?.userData?.email;
-    const doctorName = appointment?.docData?.name || 'Your Doctor';
-    const doctorSpeciality = appointment?.docData?.speciality || 'General Medicine';
-    const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
-    const slotTime = appointment?.slotTime || 'Scheduled Time';
-    const amount = appointment?.amount || 0;
-    const currency = process.env.CURRENCY || 'INR';
-    const clinicAddress = appointment?.docData?.address
-        ? `${appointment.docData.address.line1 || ''}, ${appointment.docData.address.line2 || ''}`
-        : 'DocNode Health Center';
-    const clientUrl = getClientUrl();
+  const patientName = appointment?.userData?.name || 'Patient';
+  const patientEmail = appointment?.userData?.email;
+  const doctorName = appointment?.docData?.name || 'Your Doctor';
+  const doctorSpeciality = appointment?.docData?.speciality || 'General Medicine';
+  const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
+  const slotTime = appointment?.slotTime || 'Scheduled Time';
+  const amount = appointment?.amount || 0;
+  const currency = process.env.CURRENCY || 'INR';
+  const clinicAddress = appointment?.docData?.address
+    ? `${appointment.docData.address.line1 || ''}, ${appointment.docData.address.line2 || ''}`
+    : 'DocNode Health Center';
+  const clientUrl = getClientUrl();
 
-    const textContent = `Hello ${patientName},\n\nYour consultation fee payment has been confirmed.\n\nReceipt Summary:\n- Doctor: ${doctorName} (${doctorSpeciality})\n- Date & Time: ${slotDate} at ${slotTime}\n- Amount Paid: ${currency === 'INR' ? '₹' : '$'}${amount}\n- Transaction Reference: ${paymentId !== 'N/A' ? paymentId : orderId}\n- Location: ${clinicAddress}\n\nPlease arrive 10 minutes prior to your appointment time.\n\nDocNode Healthcare Team`;
+  const textContent = `Hello ${patientName},\n\nYour consultation fee payment has been confirmed.\n\nReceipt Summary:\n- Doctor: ${doctorName} (${doctorSpeciality})\n- Date & Time: ${slotDate} at ${slotTime}\n- Amount Paid: ${currency === 'INR' ? '₹' : '$'}${amount}\n- Transaction Reference: ${paymentId !== 'N/A' ? paymentId : orderId}\n- Location: ${clinicAddress}\n\nPlease arrive 10 minutes prior to your appointment time.\n\nDocNode Healthcare Team`;
 
-    const content = `
+  const content = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; background-color: #ecfdf5; color: #059669; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; border: 1px solid #a7f3d0; margin-bottom: 12px;">
           ✓ Payment Received & Confirmed
@@ -247,31 +241,31 @@ export const sendPaymentConfirmationEmail = async ({ appointment, paymentId = 'N
       </div>
     `;
 
-    return sendMailSafe({
-        to: patientEmail,
-        subject: `Payment Receipt: Appointment Confirmed with ${doctorName}`,
-        text: textContent,
-        html: emailLayout(content, `Your payment for ${doctorName} on ${slotDate} has been confirmed.`)
-    });
+  return sendMailSafe({
+    to: patientEmail,
+    subject: `Payment Receipt: Appointment Confirmed with ${doctorName}`,
+    text: textContent,
+    html: emailLayout(content, `Your payment for ${doctorName} on ${slotDate} has been confirmed.`)
+  });
 };
 
 /**
  * 2. Appointment Booking Confirmation Email
  */
 export const sendBookingConfirmationEmail = async ({ appointment }) => {
-    const patientName = appointment?.userData?.name || 'Patient';
-    const patientEmail = appointment?.userData?.email;
-    const doctorName = appointment?.docData?.name || 'Your Doctor';
-    const doctorSpeciality = appointment?.docData?.speciality || 'General Medicine';
-    const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
-    const slotTime = appointment?.slotTime || 'Scheduled Time';
-    const amount = appointment?.amount || 0;
-    const currency = process.env.CURRENCY || 'INR';
-    const clientUrl = getClientUrl();
+  const patientName = appointment?.userData?.name || 'Patient';
+  const patientEmail = appointment?.userData?.email;
+  const doctorName = appointment?.docData?.name || 'Your Doctor';
+  const doctorSpeciality = appointment?.docData?.speciality || 'General Medicine';
+  const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
+  const slotTime = appointment?.slotTime || 'Scheduled Time';
+  const amount = appointment?.amount || 0;
+  const currency = process.env.CURRENCY || 'INR';
+  const clientUrl = getClientUrl();
 
-    const textContent = `Hello ${patientName},\n\nYour appointment with ${doctorName} (${doctorSpeciality}) has been reserved for ${slotDate} at ${slotTime}.\n\nConsultation Fee: ${currency === 'INR' ? '₹' : '$'}${amount}\nPayment Status: ${appointment?.payment ? 'Paid Online' : 'Pending (Pay Online / At Clinic)'}\n\nThank you for choosing DocNode Healthcare.`;
+  const textContent = `Hello ${patientName},\n\nYour appointment with ${doctorName} (${doctorSpeciality}) has been reserved for ${slotDate} at ${slotTime}.\n\nConsultation Fee: ${currency === 'INR' ? '₹' : '$'}${amount}\nPayment Status: ${appointment?.payment ? 'Paid Online' : 'Pending (Pay Online / At Clinic)'}\n\nThank you for choosing DocNode Healthcare.`;
 
-    const content = `
+  const content = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; background-color: #eff6ff; color: #2563eb; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; border: 1px solid #bfdbfe; margin-bottom: 12px;">
           Appointment Reserved
@@ -323,31 +317,31 @@ export const sendBookingConfirmationEmail = async ({ appointment }) => {
       </div>
     `;
 
-    return sendMailSafe({
-        to: patientEmail,
-        subject: `Appointment Reserved with ${doctorName} on ${slotDate}`,
-        text: textContent,
-        html: emailLayout(content, `Your appointment slot with ${doctorName} has been reserved.`)
-    });
+  return sendMailSafe({
+    to: patientEmail,
+    subject: `Appointment Reserved with ${doctorName} on ${slotDate}`,
+    text: textContent,
+    html: emailLayout(content, `Your appointment slot with ${doctorName} has been reserved.`)
+  });
 };
 
 /**
  * 3. Appointment Cancellation Email
  */
 export const sendAppointmentCancelledEmail = async ({ appointment, cancelledBy = 'System' }) => {
-    const patientName = appointment?.userData?.name || 'Patient';
-    const patientEmail = appointment?.userData?.email;
-    const doctorName = appointment?.docData?.name || 'Your Doctor';
-    const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
-    const slotTime = appointment?.slotTime || 'Scheduled Time';
-    const wasPaid = appointment?.payment;
-    const amount = appointment?.amount || 0;
-    const currency = process.env.CURRENCY || 'INR';
-    const clientUrl = getClientUrl();
+  const patientName = appointment?.userData?.name || 'Patient';
+  const patientEmail = appointment?.userData?.email;
+  const doctorName = appointment?.docData?.name || 'Your Doctor';
+  const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Scheduled Date';
+  const slotTime = appointment?.slotTime || 'Scheduled Time';
+  const wasPaid = appointment?.payment;
+  const amount = appointment?.amount || 0;
+  const currency = process.env.CURRENCY || 'INR';
+  const clientUrl = getClientUrl();
 
-    const textContent = `Hello ${patientName},\n\nYour appointment with ${doctorName} on ${slotDate} at ${slotTime} has been cancelled.\n\n${wasPaid ? `Refund Notice: A full refund of ${currency === 'INR' ? '₹' : '$'}${amount} has been initiated to your original payment method (5-7 business days).\n\n` : ''}DocNode Healthcare Team`;
+  const textContent = `Hello ${patientName},\n\nYour appointment with ${doctorName} on ${slotDate} at ${slotTime} has been cancelled.\n\n${wasPaid ? `Refund Notice: A full refund of ${currency === 'INR' ? '₹' : '$'}${amount} has been initiated to your original payment method (5-7 business days).\n\n` : ''}DocNode Healthcare Team`;
 
-    const content = `
+  const content = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; background-color: #fef2f2; color: #dc2626; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; border: 1px solid #fecaca; margin-bottom: 12px;">
           Appointment Cancelled
@@ -373,27 +367,27 @@ export const sendAppointmentCancelledEmail = async ({ appointment, cancelledBy =
       </div>
     `;
 
-    return sendMailSafe({
-        to: patientEmail,
-        subject: `Cancelled: Appointment with ${doctorName} on ${slotDate}`,
-        text: textContent,
-        html: emailLayout(content, `Cancellation notice for your appointment with ${doctorName}.`)
-    });
+  return sendMailSafe({
+    to: patientEmail,
+    subject: `Cancelled: Appointment with ${doctorName} on ${slotDate}`,
+    text: textContent,
+    html: emailLayout(content, `Cancellation notice for your appointment with ${doctorName}.`)
+  });
 };
 
 /**
  * 4. Appointment Consultation Completed Email
  */
 export const sendAppointmentCompletedEmail = async ({ appointment }) => {
-    const patientName = appointment?.userData?.name || 'Patient';
-    const patientEmail = appointment?.userData?.email;
-    const doctorName = appointment?.docData?.name || 'Your Doctor';
-    const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Today';
-    const clientUrl = getClientUrl();
+  const patientName = appointment?.userData?.name || 'Patient';
+  const patientEmail = appointment?.userData?.email;
+  const doctorName = appointment?.docData?.name || 'Your Doctor';
+  const slotDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'Today';
+  const clientUrl = getClientUrl();
 
-    const textContent = `Hello ${patientName},\n\nYour consultation with ${doctorName} on ${slotDate} has been successfully completed.\n\nThank you for choosing DocNode Healthcare.`;
+  const textContent = `Hello ${patientName},\n\nYour consultation with ${doctorName} on ${slotDate} has been successfully completed.\n\nThank you for choosing DocNode Healthcare.`;
 
-    const content = `
+  const content = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; background-color: #f0fdf4; color: #16a34a; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; border: 1px solid #bbf7d0; margin-bottom: 12px;">
           Consultation Concluded
@@ -417,17 +411,17 @@ export const sendAppointmentCompletedEmail = async ({ appointment }) => {
       </div>
     `;
 
-    return sendMailSafe({
-        to: patientEmail,
-        subject: `Consultation Completed with ${doctorName}`,
-        text: textContent,
-        html: emailLayout(content, `Consultation record with ${doctorName} is available.`)
-    });
+  return sendMailSafe({
+    to: patientEmail,
+    subject: `Consultation Completed with ${doctorName}`,
+    text: textContent,
+    html: emailLayout(content, `Consultation record with ${doctorName} is available.`)
+  });
 };
 
 export default {
-    sendPaymentConfirmationEmail,
-    sendBookingConfirmationEmail,
-    sendAppointmentCancelledEmail,
-    sendAppointmentCompletedEmail
+  sendPaymentConfirmationEmail,
+  sendBookingConfirmationEmail,
+  sendAppointmentCancelledEmail,
+  sendAppointmentCompletedEmail
 };

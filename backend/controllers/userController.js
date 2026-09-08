@@ -6,10 +6,10 @@ import { v2 as cloudinary } from 'cloudinary';
 import doctorModel from '../models/doctorModel.js';
 import appointmentModel from '../models/appointmentModel.js';
 import razorpay from 'razorpay';
-import { 
-    sendPaymentConfirmationEmail, 
-    sendBookingConfirmationEmail, 
-    sendAppointmentCancelledEmail 
+import {
+    sendPaymentConfirmationEmail,
+    sendBookingConfirmationEmail,
+    sendAppointmentCancelledEmail
 } from '../config/emailService.js';
 
 
@@ -89,7 +89,7 @@ const loginUser = async (req, res) => {
 
         // jwt token for authentication
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" })
-        
+
         res.json({ success: true, message: "Login successful", token })
 
     } catch (error) {
@@ -143,8 +143,8 @@ const resetPassword = async (req, res) => {
 
 // API to get user profile data
 const getProfileData = async (req, res) => {
-   
-    try{
+
+    try {
         const { userId } = req.body
         const user = await usermodel.findById(userId).select('-password')
         if (!user) {
@@ -157,18 +157,18 @@ const getProfileData = async (req, res) => {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-}  
+}
 
 
 // API to update user profile
-const updateProfile = async(req, res) =>{
-    try {   
+const updateProfile = async (req, res) => {
+    try {
         // we are using FormData in frontend so we can't use json parsing, so we are getting data from req.body
-        const {userId,name,phone, address, dob, gender} = req.body;
+        const { userId, name, phone, address, dob, gender } = req.body;
         const imageFile = req.file;
 
-        if(!name || !phone || !address || !dob || !gender){
-            return res.json({success: false, message: "All fields are required"})
+        if (!name || !phone || !address || !dob || !gender) {
+            return res.json({ success: false, message: "All fields are required" })
         }
 
         const cleanPhone = String(phone).replace(/\D/g, '');
@@ -186,13 +186,13 @@ const updateProfile = async(req, res) =>{
         }
 
         let updatedUser;
-        if(imageFile) {
+        if (imageFile) {
             // upload image to cloudinary
             const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: 'image' });
             const imageUrl = imageUpload.secure_url;
-            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone: cleanPhone, address: parsedAddress, dob, gender, image: imageUrl}, { new: true });
+            updatedUser = await usermodel.findByIdAndUpdate(userId, { name, phone: cleanPhone, address: parsedAddress, dob, gender, image: imageUrl }, { new: true });
         } else {
-            updatedUser = await usermodel.findByIdAndUpdate(userId, {name, phone: cleanPhone, address: parsedAddress, dob, gender}, { new: true });
+            updatedUser = await usermodel.findByIdAndUpdate(userId, { name, phone: cleanPhone, address: parsedAddress, dob, gender }, { new: true });
         }
 
         if (!updatedUser) {
@@ -202,7 +202,7 @@ const updateProfile = async(req, res) =>{
         res.json({ success: true, message: "Profile updated successfully", user: updatedUser })
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message})
+        res.json({ success: false, message: error.message })
     }
 }
 
@@ -261,17 +261,9 @@ const bookAppointment = async (req, res) => {
         await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
         // Send booking confirmation email asynchronously
-        sendBookingConfirmationEmail({ appointment: newAppointment })
-            .then(res => {
-                if (res && !res.success) {
-                    console.error('[EmailService] Booking email failed:', res.error || res.reason);
-                } else if (res) {
-                    console.log('[EmailService] Booking email sent successfully:', res.messageId);
-                }
-            })
-            .catch(err => {
-                console.error('[EmailService] Booking notification error:', err);
-            });
+        sendBookingConfirmationEmail({ appointment: newAppointment }).catch(err => {
+            console.error('[EmailService] Booking notification error:', err);
+        });
 
         res.json({ success: true, message: "Appointment booked successfully" });
 
@@ -375,7 +367,7 @@ const verifyRazorpay = async (req, res) => {
 
         if (orderInfo.status === 'paid') {
             const updatedAppointment = await appointmentModel.findByIdAndUpdate(
-                orderInfo.receipt, 
+                orderInfo.receipt,
                 { payment: true },
                 { new: true }
             );
