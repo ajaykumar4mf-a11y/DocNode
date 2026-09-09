@@ -18,10 +18,22 @@ const Appointment = () => {
   const [slotIndex, setSlotIndex] = useState(0)
   const [slotTime, setSlotTime] = useState('')
   const [isBooking, setIsBooking] = useState(false)
+  const [reviews, setReviews] = useState([])
 
   const fetchDocInfo = async () => {
     const foundDoc = doctors.find(doc => doc._id === docId)
     setDocInfo(foundDoc)
+  }
+
+  const fetchDoctorReviews = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/doctor-reviews/${docId}`)
+      if (data.success) {
+        setReviews(data.reviews || [])
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error)
+    }
   }
 
   const getAvailableSlots = async () => {
@@ -144,6 +156,7 @@ const Appointment = () => {
 
   useEffect(() => {
     fetchDocInfo()
+    fetchDoctorReviews()
   }, [doctors, docId])
 
   useEffect(() => {
@@ -220,6 +233,19 @@ const Appointment = () => {
                 <span className='font-medium text-slate-600'>{docInfo.degree}</span>
                 <span className='text-slate-400'>•</span>
                 <span className='font-medium text-slate-600'>{docInfo.experience} Experience</span>
+              </div>
+
+              {/* Rating & Review Summary Badge */}
+              <div className='flex items-center gap-2 mt-2'>
+                <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 font-bold text-xs border border-amber-200/80 shadow-2xs'>
+                  <span className='text-amber-500 text-sm'>★</span>
+                  <span>{docInfo.averageRating ? docInfo.averageRating.toFixed(1) : '5.0'}</span>
+                </span>
+                <span className='text-xs text-slate-500 font-medium'>
+                  {docInfo.reviewCount 
+                    ? `Based on ${docInfo.reviewCount} verified patient ${docInfo.reviewCount === 1 ? 'consultation' : 'consultations'}`
+                    : 'Verified specialist • New to online ratings'}
+                </span>
               </div>
             </div>
 
@@ -389,6 +415,67 @@ const Appointment = () => {
           </p>
         </div>
       )}
+
+      {/* ---------------- Verified Patient Reviews Section ---------------- */}
+      <div className='mt-12 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs'>
+        <div className='flex items-center justify-between gap-4 pb-4 border-b border-slate-100 flex-wrap'>
+          <div>
+            <h2 className='text-lg sm:text-xl font-bold text-slate-900'>Patient Reviews & Ratings</h2>
+            <p className='text-xs text-slate-500 mt-0.5'>
+              Authentic feedback from verified patients who completed consultations with Dr. {docInfo.name}
+            </p>
+          </div>
+          <div className='flex items-center gap-2'>
+            <span className='text-2xl font-black text-slate-900'>
+              {docInfo.averageRating ? docInfo.averageRating.toFixed(1) : '5.0'}
+            </span>
+            <div>
+              <div className='flex text-amber-400 text-sm'>
+                {'★'.repeat(Math.round(docInfo.averageRating || 5))}
+              </div>
+              <span className='text-[11px] text-slate-400 font-medium'>
+                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {reviews.length > 0 ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
+            {reviews.map((rev, idx) => (
+              <div key={rev._id || idx} className='p-4 rounded-2xl bg-slate-50/70 border border-slate-200/70 space-y-2'>
+                <div className='flex items-center justify-between gap-2'>
+                  <div className='flex items-center gap-2.5'>
+                    <div className='w-8 h-8 rounded-full bg-indigo-100 text-primary flex items-center justify-center font-bold text-xs'>
+                      {rev.userName ? rev.userName[0].toUpperCase() : 'P'}
+                    </div>
+                    <div>
+                      <h4 className='text-xs font-bold text-slate-900'>{rev.userName}</h4>
+                      <span className='text-[10px] text-emerald-600 font-semibold'>✓ Verified Consultation</span>
+                    </div>
+                  </div>
+                  <div className='flex items-center text-amber-400 text-xs'>
+                    {'★'.repeat(rev.rating)}
+                    <span className='text-slate-300'>{'★'.repeat(5 - rev.rating)}</span>
+                  </div>
+                </div>
+                <p className='text-xs text-slate-600 leading-relaxed italic'>
+                  "{rev.comment}"
+                </p>
+                <div className='text-[10px] text-slate-400'>
+                  {new Date(rev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className='py-8 text-center'>
+            <p className='text-xs text-slate-500 font-medium'>
+              No patient reviews yet. Patients who complete consultations can share their feedback in their appointment dashboard.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* ---------------- Related Doctors Section ---------------- */}
       <div className='mt-12'>

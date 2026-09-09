@@ -90,6 +90,29 @@ const DoctorContextProvider = (props) => {
         }
     }
 
+    const savePrescription = async (prescriptionPayload) => {
+        try {
+            const { data } = await axios.post(`${backendUrl}/api/doctor/save-prescription`, prescriptionPayload, {
+                headers: {
+                    Authorization: dToken,
+                    dtoken: dToken
+                }
+            })
+            if (data.success) {
+                toast.success(data.message)
+                getAppointments()
+                getDashData()
+                return { success: true, appointment: data.appointment }
+            } else {
+                toast.error(data.message)
+                return { success: false, message: data.message }
+            }
+        } catch (error) {
+            toast.error(error.message)
+            return { success: false, message: error.message }
+        }
+    }
+
     const [dashData, setDashData] = useState(false)
 
     const getDashData = async () => {
@@ -185,6 +208,7 @@ const DoctorContextProvider = (props) => {
         appointments,setAppointments,getAppointments,
         dashData,setDashData,getDashData,
         cancelAppointment,completeAppointment,
+        savePrescription,
         profileData,setProfileData,getProfile,getProfileData: getProfile,updateProfile,changeAvailability,
         calculateAge,slotDateFormat,currency
     }

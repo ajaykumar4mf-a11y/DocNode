@@ -44,6 +44,36 @@ const appointmentSchema = new mongoose.Schema({
     isCompleted: {
         type: Boolean,
         default: false
+    },
+    isReviewed: {
+        type: Boolean,
+        default: false
+    },
+    prescription: {
+        diagnosis: {
+            type: String,
+            default: ""
+        },
+        notes: {
+            type: String,
+            default: ""
+        },
+        vitals: {
+            bp: { type: String, default: "" },
+            pulse: { type: String, default: "" },
+            temperature: { type: String, default: "" }
+        },
+        medicines: [
+            {
+                name: { type: String, default: "" },
+                dosage: { type: String, default: "" },
+                frequency: { type: String, default: "" },
+                duration: { type: String, default: "" }
+            }
+        ],
+        prescribedAt: {
+            type: Date
+        }
     }
 });
 

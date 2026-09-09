@@ -5,11 +5,13 @@ import jwt from 'jsonwebtoken'
 import { v2 as cloudinary } from 'cloudinary';
 import doctorModel from '../models/doctorModel.js';
 import appointmentModel from '../models/appointmentModel.js';
+import reviewModel from '../models/reviewModel.js';
 import razorpay from 'razorpay';
 import {
     sendPaymentConfirmationEmail,
     sendBookingConfirmationEmail,
-    sendAppointmentCancelledEmail
+    sendAppointmentCancelledEmail,
+    sendAppointmentRescheduledEmail
 } from '../config/emailService.js';
 
 
@@ -393,4 +395,200 @@ const verifyRazorpay = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, resetPassword, getProfileData, updateProfile, bookAppointment, listAppointments, cancelAppointment, appointmentPayment, verifyRazorpay }  
+// API to reschedule appointment slot without re-payment or cancellation
+const rescheduleAppointment = async (req, res) => {
+    try {
+        const { userId, appointmentId, newSlotDate, newSlotTime } = req.body;
+
+        if (!appointmentId || !newSlotDate || !newSlotTime) {
+            return res.json({ success: false, message: "Appointment ID, new date, and new time slot are required" });
+        }
+
+        const appointment = await appointmentModel.findById(appointmentId);
+        if (!appointment) {
+            return res.json({ success: false, message: "Appointment not found" });
+        }
+
+        if (appointment.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized action" });
+        }
+
+        if (appointment.cancelled) {
+            return res.json({ success: false, message: "Cannot reschedule a cancelled appointment" });
+        }
+
+        if (appointment.isCompleted) {
+            return res.json({ success: false, message: "Cannot reschedule a completed consultation" });
+        }
+
+        const doctor = await doctorModel.findById(appointment.docId);
+        if (!doctor) {
+            return res.json({ success: false, message: "Doctor not found" });
+        }
+
+        if (!doctor.available) {
+            return res.json({ success: false, message: "Doctor is currently unavailable for bookings" });
+        }
+
+        // Check if new slot is already booked
+        let slots_booked = doctor.slots_booked || {};
+        if (slots_booked[newSlotDate] && slots_booked[newSlotDate].includes(newSlotTime)) {
+            return res.json({ success: false, message: "The selected time slot is already booked. Please choose another slot." });
+        }
+
+        const previousSlot = {
+            date: appointment.slotDate,
+            time: appointment.slotTime
+        };
+
+        // Release old slot
+        if (slots_booked[previousSlot.date]) {
+            slots_booked[previousSlot.date] = slots_booked[previousSlot.date].filter(time => time !== previousSlot.time);
+            if (slots_booked[previousSlot.date].length === 0) {
+                delete slots_booked[previousSlot.date];
+            }
+        }
+
+        // Book new slot
+        if (slots_booked[newSlotDate]) {
+            slots_booked[newSlotDate].push(newSlotTime);
+        } else {
+            slots_booked[newSlotDate] = [newSlotTime];
+        }
+
+        await doctorModel.findByIdAndUpdate(appointment.docId, { slots_booked });
+
+        const updatedAppointment = await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            { slotDate: newSlotDate, slotTime: newSlotTime },
+            { new: true }
+        );
+
+        // Send reschedule confirmation notification
+        sendAppointmentRescheduledEmail({
+            appointment: updatedAppointment,
+            previousSlot
+        }).catch(err => {
+            console.error('[EmailService] Reschedule notification error:', err);
+        });
+
+        res.json({
+            success: true,
+            message: "Appointment rescheduled successfully",
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        console.error("Error rescheduling appointment:", error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// API to add doctor review from completed appointment
+const addReview = async (req, res) => {
+    try {
+        const { userId, appointmentId, rating, comment } = req.body;
+
+        if (!appointmentId || !rating || !comment) {
+            return res.json({ success: false, message: "Appointment ID, rating, and feedback comment are required" });
+        }
+
+        const numRating = Number(rating);
+        if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+            return res.json({ success: false, message: "Rating must be between 1 and 5" });
+        }
+
+        const trimmedComment = String(comment).trim();
+        if (trimmedComment.length < 5) {
+            return res.json({ success: false, message: "Please provide a detailed comment (at least 5 characters)" });
+        }
+
+        const appointment = await appointmentModel.findById(appointmentId);
+        if (!appointment) {
+            return res.json({ success: false, message: "Appointment not found" });
+        }
+
+        if (appointment.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized: You can only review your own consultations" });
+        }
+
+        if (!appointment.isCompleted || appointment.cancelled) {
+            return res.json({ success: false, message: "Only verified completed consultations can be reviewed" });
+        }
+
+        const existingReview = await reviewModel.findOne({ appointmentId });
+        if (existingReview) {
+            return res.json({ success: false, message: "You have already submitted a review for this consultation" });
+        }
+
+        const user = await usermodel.findById(userId);
+
+        const newReview = new reviewModel({
+            docId: appointment.docId,
+            userId,
+            appointmentId,
+            userName: user?.name || appointment.userData?.name || "Verified Patient",
+            userImage: user?.image || appointment.userData?.image || "",
+            rating: numRating,
+            comment: trimmedComment,
+            date: Date.now()
+        });
+
+        await newReview.save();
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, { isReviewed: true });
+
+        // Recalculate doctor averageRating & reviewCount
+        const docReviews = await reviewModel.find({ docId: appointment.docId });
+        const reviewCount = docReviews.length;
+        const totalRating = docReviews.reduce((sum, r) => sum + r.rating, 0);
+        const averageRating = reviewCount > 0 ? Number((totalRating / reviewCount).toFixed(1)) : 0;
+
+        await doctorModel.findByIdAndUpdate(appointment.docId, {
+            averageRating,
+            reviewCount
+        });
+
+        res.json({
+            success: true,
+            message: "Review submitted successfully! Thank you for your feedback.",
+            review: newReview,
+            averageRating,
+            reviewCount
+        });
+    } catch (error) {
+        console.error("Error adding review:", error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// API to get verified reviews for a doctor
+const getDoctorReviews = async (req, res) => {
+    try {
+        const { docId } = req.params;
+        if (!docId) {
+            return res.json({ success: false, message: "Doctor ID is required" });
+        }
+
+        const reviews = await reviewModel.find({ docId }).sort({ date: -1 });
+        res.json({ success: true, reviews });
+    } catch (error) {
+        console.error("Error fetching doctor reviews:", error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export { 
+    registerUser, 
+    loginUser, 
+    resetPassword, 
+    getProfileData, 
+    updateProfile, 
+    bookAppointment, 
+    listAppointments, 
+    cancelAppointment, 
+    appointmentPayment, 
+    verifyRazorpay,
+    rescheduleAppointment,
+    addReview,
+    getDoctorReviews
+};  

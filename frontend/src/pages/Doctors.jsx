@@ -28,6 +28,7 @@ const Doctors = () => {
 
   const sortOptions = [
     { value: 'recommended', label: 'Recommended' },
+    { value: 'rating', label: 'Rating: High to Low' },
     { value: 'fee-low', label: 'Fee: Low to High' },
     { value: 'fee-high', label: 'Fee: High to Low' },
     { value: 'experience', label: 'Experience: Most' }
@@ -66,7 +67,9 @@ const Doctors = () => {
       )
     }
 
-    if (sortBy === 'fee-low') {
+    if (sortBy === 'rating') {
+      list = [...list].sort((a, b) => (Number(b.averageRating) || 0) - (Number(a.averageRating) || 0))
+    } else if (sortBy === 'fee-low') {
       list = [...list].sort((a, b) => Number(a.fees) - Number(b.fees))
     } else if (sortBy === 'fee-high') {
       list = [...list].sort((a, b) => Number(b.fees) - Number(a.fees))
@@ -472,6 +475,17 @@ const Doctors = () => {
                     <p className='text-slate-500 text-xs font-medium mt-0.5'>
                       {item.degree || 'Certified Specialist'}
                     </p>
+
+                    {/* Rating & Review Count */}
+                    <div className='flex items-center gap-1.5 mt-2'>
+                      <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-bold text-[11px] border border-amber-200/80 shadow-2xs'>
+                        <span className='text-amber-500 text-xs'>★</span>
+                        <span>{item.averageRating ? item.averageRating.toFixed(1) : '5.0'}</span>
+                      </span>
+                      <span className='text-[11px] text-slate-400 font-medium'>
+                        {item.reviewCount ? `(${item.reviewCount} ${item.reviewCount === 1 ? 'review' : 'reviews'})` : '(New)'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className='mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium'>

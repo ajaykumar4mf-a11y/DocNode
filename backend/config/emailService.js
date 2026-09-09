@@ -419,9 +419,68 @@ export const sendAppointmentCompletedEmail = async ({ appointment }) => {
   });
 };
 
+/**
+ * 5. Appointment Rescheduling Notification Email
+ */
+export const sendAppointmentRescheduledEmail = async ({ appointment, previousSlot }) => {
+  const patientName = appointment?.userData?.name || 'Patient';
+  const patientEmail = appointment?.userData?.email;
+  const doctorName = appointment?.docData?.name || 'Your Doctor';
+  const newDate = appointment?.slotDate ? appointment.slotDate.split('_').join('/') : 'New Date';
+  const newTime = appointment?.slotTime || 'New Time';
+  const prevDate = previousSlot?.date ? previousSlot.date.split('_').join('/') : 'Previous Date';
+  const prevTime = previousSlot?.time || 'Previous Time';
+  const clientUrl = getClientUrl();
+
+  const textContent = `Hello ${patientName},\n\nYour appointment with ${doctorName} has been rescheduled to ${newDate} at ${newTime}.\nPrevious Slot: ${prevDate} at ${prevTime}.\n\nThank you for choosing DocNode Healthcare.`;
+
+  const content = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; background-color: #f5f3ff; color: #7c3aed; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; border: 1px solid #ddd6fe; margin-bottom: 12px;">
+          Appointment Rescheduled
+        </div>
+        <h2 style="margin: 0; color: #0f172a; font-size: 20px; font-weight: 700;">Slot Updated Successfully</h2>
+        <p style="margin: 6px 0 0 0; color: #64748b; font-size: 13px;">
+          Hello <strong>${patientName}</strong>, your appointment slot has been updated.
+        </p>
+      </div>
+
+      <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 24px; background-color: #ffffff;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td style="padding: 6px 0; font-size: 13px; color: #64748b;">Consultant:</td>
+            <td style="padding: 6px 0; font-size: 13px; font-weight: 600; color: #0f172a; text-align: right;">${doctorName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; font-size: 13px; color: #64748b;">Previous Slot:</td>
+            <td style="padding: 6px 0; font-size: 13px; color: #94a3b8; text-decoration: line-through; text-align: right;">${prevDate} at ${prevTime}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; font-size: 13px; color: #64748b;">New Slot:</td>
+            <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #5f6FFF; text-align: right;">${newDate} at ${newTime}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="${clientUrl}/my-appointments" style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #5f6FFF 100%); color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 9999px; font-size: 13px; font-weight: 600;">
+          View in My Appointments
+        </a>
+      </div>
+    `;
+
+  return sendMailSafe({
+    to: patientEmail,
+    subject: `Rescheduled: Appointment with ${doctorName}`,
+    text: textContent,
+    html: emailLayout(content, `Your appointment slot with ${doctorName} has been updated to ${newDate} at ${newTime}.`)
+  });
+};
+
 export default {
   sendPaymentConfirmationEmail,
   sendBookingConfirmationEmail,
   sendAppointmentCancelledEmail,
-  sendAppointmentCompletedEmail
+  sendAppointmentCompletedEmail,
+  sendAppointmentRescheduledEmail
 };

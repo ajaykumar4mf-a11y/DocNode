@@ -125,6 +125,17 @@ const TopDoctors = () => {
                   <p className='text-xs text-slate-500 mt-0.5'>
                     {item.degree || 'Certified Specialist'}
                   </p>
+
+                  {/* Rating & Review Count */}
+                  <div className='flex items-center gap-1.5 mt-2'>
+                    <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-bold text-[11px] border border-amber-200/80 shadow-2xs'>
+                      <span className='text-amber-500 text-xs'>★</span>
+                      <span>{item.averageRating ? item.averageRating.toFixed(1) : '5.0'}</span>
+                    </span>
+                    <span className='text-[11px] text-slate-400 font-medium'>
+                      {item.reviewCount ? `(${item.reviewCount} ${item.reviewCount === 1 ? 'review' : 'reviews'})` : '(New)'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Card Footer: Fee & Action */}

@@ -219,4 +219,74 @@ const changeAvailability = async (req, res) => {
     }
 };
 
-export { doctorList, doctorLogin, appointmentsByDoctor, appointmentCancel, appointmentComplete, doctorDashboard, doctorProfile, doctorProfileUpdate, changeAvailability };
+// API to attach/update digital prescription and clinical notes
+const savePrescription = async (req, res) => {
+    try {
+        const docId = req.docId || req.body?.docId;
+        const { appointmentId, diagnosis, notes, vitals, medicines, markComplete } = req.body;
+
+        if (!appointmentId) {
+            return res.json({ success: false, message: "Appointment ID is required" });
+        }
+
+        const appointment = await appointmentModel.findById(appointmentId);
+        if (!appointment) {
+            return res.json({ success: false, message: "Appointment not found" });
+        }
+
+        if (appointment.docId !== docId) {
+            return res.json({ success: false, message: "Unauthorized action" });
+        }
+
+        const prescriptionData = {
+            diagnosis: diagnosis || "",
+            notes: notes || "",
+            vitals: {
+                bp: vitals?.bp || "",
+                pulse: vitals?.pulse || "",
+                temperature: vitals?.temperature || ""
+            },
+            medicines: Array.isArray(medicines) ? medicines : [],
+            prescribedAt: new Date()
+        };
+
+        const updateFields = { prescription: prescriptionData };
+        if (markComplete) {
+            updateFields.isCompleted = true;
+        }
+
+        const updatedAppointment = await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            updateFields,
+            { new: true }
+        );
+
+        if (markComplete && !appointment.isCompleted) {
+            sendAppointmentCompletedEmail({ appointment: updatedAppointment }).catch(err => {
+                console.error('[EmailService] Complete notification error:', err);
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Prescription saved successfully",
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        console.error("Error saving prescription:", error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+export { 
+    doctorList, 
+    doctorLogin, 
+    appointmentsByDoctor, 
+    appointmentCancel, 
+    appointmentComplete, 
+    doctorDashboard, 
+    doctorProfile, 
+    doctorProfileUpdate, 
+    changeAvailability,
+    savePrescription
+};

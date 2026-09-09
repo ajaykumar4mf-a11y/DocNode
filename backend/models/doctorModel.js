@@ -53,6 +53,14 @@ const doctorSchema = new mongoose.Schema({
     slots_booked: {
         type: Object,
         default: {}
+    },
+    averageRating: {
+        type: Number,
+        default: 0
+    },
+    reviewCount: {
+        type: Number,
+        default: 0
     }
 }, { minimize: false });
 

@@ -20,3 +20,25 @@
         @apply text-white bg-primary px-2 py-1 rounded-lg;
     }
 }
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printable-prescription, #printable-prescription * {
+        visibility: visible;
+    }
+    #printable-prescription {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+}
