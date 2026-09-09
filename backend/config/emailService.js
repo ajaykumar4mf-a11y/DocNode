@@ -5,7 +5,18 @@ import nodemailer from 'nodemailer';
  * If SMTP credentials are missing, falls back to a development logger
  * so local development and testing never crash or block API responses.
  */
+let cachedTransporter = null;
+
+/**
+ * Creates or returns a cached singleton Nodemailer transporter with connection pooling.
+ * Connection pooling keeps sockets open, dramatically speeding up email delivery
+ * by avoiding new TLS and authentication handshakes on every send.
+ */
 const getTransporter = () => {
+  if (cachedTransporter) {
+    return cachedTransporter;
+  }
+
   const { SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT } = process.env;
 
   if (SMTP_USER && SMTP_PASS) {
@@ -15,24 +26,33 @@ const getTransporter = () => {
     const isGmail = host.includes('gmail') || !SMTP_HOST;
 
     if (isGmail) {
-      return nodemailer.createTransport({
+      cachedTransporter = nodemailer.createTransport({
         service: 'gmail',
+        pool: true, // Use pooled connections
+        maxConnections: 3,
+        maxMessages: 100,
+        rateDelta: 1000,
+        rateLimit: 5,
         auth: {
           user: SMTP_USER,
           pass: cleanPass
         }
       });
+      return cachedTransporter;
     }
 
-    return nodemailer.createTransport({
+    cachedTransporter = nodemailer.createTransport({
       host: host,
       port: port,
       secure: port === 465,
+      pool: true,
+      maxConnections: 3,
       auth: {
         user: SMTP_USER,
         pass: cleanPass
       }
     });
+    return cachedTransporter;
   }
 
   return null;
@@ -73,12 +93,7 @@ const sendMailSafe = async ({ to, subject, html, text }) => {
       to,
       subject,
       text,
-      html,
-      headers: {
-        'X-Entity-Ref-ID': `${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        'X-Priority': '3', // Normal transactional priority
-        'X-Mailer': 'DocNode Healthcare Engine'
-      }
+      html
     });
 
     console.log(`[EmailService] Email delivered to ${to}. MessageId: ${info.messageId}`);
@@ -91,9 +106,9 @@ const sendMailSafe = async ({ to, subject, html, text }) => {
 };
 
 /**
- * Base email layout wrapper with invisible preheader to improve email deliverability
+ * Base email layout wrapper with clean, high-deliverability HTML
  */
-const emailLayout = (content, preheader = 'Your DocNode appointment information') => `
+const emailLayout = (content) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,11 +117,6 @@ const emailLayout = (content, preheader = 'Your DocNode appointment information'
   <title>DocNode Healthcare</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <!-- Preheader text to prevent empty snippet in inbox -->
-  <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
-    ${preheader}
-  </div>
-
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; padding: 30px 15px;">
     <tr>
       <td align="center">
